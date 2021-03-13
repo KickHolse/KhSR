@@ -1,0 +1,5 @@
+# Skript feito por Kick Holse
+# Discord: https://www.kskripts.tk/discord
+
+messages:
+  command: 'pex user {player} group set {role}'
