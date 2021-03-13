@@ -85,7 +85,7 @@ load:
 	khsr_filemanager()
 	delete {khsr::check_update}
 	wait 1 second
-	text from "https://api.spigotmc.org/legacy/update.php?resource=68835" != "{@version}":
+	text from "https://api.spigotmc.org/legacy/update.php?resource=68835" is not "{@version}":
 		set {khsr::check_update} to true
 		send "&3[KHSR] &cYou are not using the latest version of skript" to console
 	else:
