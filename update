@@ -1,0 +1,92 @@
+# ─────────────────────────────────────────────────── #
+#                    ██ ▄█▀  ██████                   #
+#                    ██▄█▒ ▒██    ▒                   #
+#                   ▓███▄░ ░ ▓██▄                     #
+#                   ▓██ █▄   ▒   ██▒                  #
+#                   ▒██▒ █▄▒██████▒▒                  #
+#                   ▒ ▒▒ ▓▒▒ ▒▓▒ ▒ ░                  #
+#                   ░ ░▒ ▒░░ ░▒  ░ ░                  #
+#                   ░ ░░ ░ ░  ░  ░                    #
+#                   ░  ░         ░                    #
+# ─────────────────────────────────────────────────── #
+options:
+#	Nome: KhSetRole | Autor: Kiberzn
+	version: v1.4
+
+# ──────────────────────────────────────────────────────────────────────────────────────────────────────────────── #
+# events
+				
+# ──────────────────────────────────────────────────────────────────────────────────────────────────────────────── #
+# commands
+command /setrole [<text = help>] [<text>]:
+	permission: khsr.*
+	permission message: §3[KhSR] §7v{@version} §f- §7Criado por §6Kick Holse§7.
+	trigger:
+		arg 1 == "help":
+			send "%nl%&e  Ajuda - SR 1/1%nl% "
+			send "&3 /setrole <jogador> &f- &7a"
+			send "&3 /setrole <jogador> <role> &f- &7a"
+			send "&3 /setrole atualizar &f- &7Atualiza o skript%nl%"
+		else:
+			arg 1 == "atualizar":
+				update player {khsr::check_update} "KhSetRole" script
+				stop
+			arg 2 is set:
+				yml value "roles.%arg 2%" from file "plugins/KhCore/roles.yml" exists:
+					set {_name} to yml value "roles.%arg 2%.name" from file "plugins/KhCore/roles.yml"
+					set {_prefix} to yml value "roles.%arg 2%.prefix" from file "plugins/KhCore/roles.yml"
+					set {_color} to khcore_getLastColor("%{_prefix}%")
+					set {_role} to "%{_color}%%{_name}%"
+					set {_arg2} to arg 2
+					set {_player} to arg 1
+					khcore_playSound(player, CLICK, 1, 15)
+					open chest inventory with 4 rows named replacer "{player}" with (arg 1 parsed as offlineplayer)'s displayname in "Setar cargo para {player}" to player
+					wait a tick
+					make a gui slot 13 of player with skull of arg 1 parsed as offlineplayer without nbt named khcore_roles_getColored(arg 1 parsed as offlineplayer) with lore replacer "{roles}" with colored {_role} in replacer "{role}" with khcore_roles_getColoredGroup(arg 1 parsed as offlineplayer) in "&fCargo atual: {role}||&fCargo a ser setado: {roles}" to run:
+						khcore_playSound(player, ITEM_PICKUP, 1, 15)
+					make a gui slot 21 of player with green stained hardened clay without nbt named "&aConfirmar" to run:
+						close player's inventory
+						set {_p} to khcore_roles_getColored({_player} parsed as offlineplayer)
+						send "&aVocê setou o cargo %{_role}%&a para %{_p}%&a."
+						make console execute command replacer "{role}" with {_arg2} in replacer "{player}" with {_player} parsed as offlineplayer's displayname in yaml value "messages.command" from "khsr.language"
+					make a gui slot 23 of player with red stained hardened clay without nbt named "&cCancelar" to run:
+						close player's inventory
+			else:
+				khcore_playSound(player, CLICK, 1, 15)
+				open chest inventory with 4 rows named replacer "{player}" with (arg 1 parsed as offlineplayer)'s displayname in "Setar cargo para {player}" to player
+				wait a tick
+				set {_slot} to 10
+				loop skutil yaml nodes "roles" from file "plugins/KhCore/roles.yml":
+					set {_name} to yml value "roles.%loop-value%.name" from file "plugins/KhCore/roles.yml"
+					set {_prefix} to yml value "roles.%loop-value%.prefix" from file "plugins/KhCore/roles.yml"
+					set {_color} to khcore_getLastColor("%{_prefix}%")
+					set {_role} to "%{_color}%%{_name}%"
+					set {_arg} to arg 1
+					set {_arg2} to loop-value
+					make a gui slot {_slot} of player with stick without nbt named colored {_role} to run:
+						make player execute command "setrole %{_arg}% %{_arg2}%"
+					add 1 to {_slot}
+					{_slot} is 17:
+						add 2 to {_slot}
+# ──────────────────────────────────────────────────────────────────────────────────────────────────────────────── #
+# filemanager
+function khsr_filemanager():
+	khcore_downGithub("KhSetRole/language.yml", "https://raw.githubusercontent.com/KickHolse/KhSetRole/main/files/language")
+	loop currently loaded yaml files:
+		loop-value contains "khsr.language"
+		unload yaml loop-value
+	load yaml "plugins/KhSetRole/language.yml" as "khsr.language"
+
+# ──────────────────────────────────────────────────────────────────────────────────────────────────────────────── #
+# functions
+# ──────────────────────────────────────────────────────────────────────────────────────────────────────────────── #
+# load
+load:
+	khsr_filemanager()
+	wait 1 second
+	text from "https://api.spigotmc.org/legacy/update.php?resource=68835" != "{@version}":
+		set {khsr::check_update} to true
+		send "&3[KHSR] &cYou are not using the latest version of skript" to console
+	else:
+		send "&3[KHSR] &aYou are using the latest version of skript" to console
+	send "&3[KHSR] &aKhSR &8v{@version} &aenabled!" to console
