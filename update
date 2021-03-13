@@ -11,11 +11,13 @@
 # ─────────────────────────────────────────────────── #
 options:
 #	Nome: KhSetRole | Autor: Kiberzn
-	version: v1.4
+	version: 1.0
 
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────── #
 # events
-				
+join:
+	khcore_notifyUpdate(player, "KhSetRole", "khsr", "68527", "{@version}", "setrole atualizar")
+
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────── #
 # commands
 command /setrole [<text = help>] [<text>]:
@@ -23,55 +25,35 @@ command /setrole [<text = help>] [<text>]:
 	permission message: §3[KhSR] §7v{@version} §f- §7Criado por §6Kick Holse§7.
 	trigger:
 		arg 1 == "help":
-			send "%nl%&e  Ajuda - SR 1/1%nl% "
-			send "&3 /setrole <jogador> &f- &7a"
-			send "&3 /setrole <jogador> <role> &f- &7a"
+			send "%nl%&e  Ajuda - SetRole 1/1%nl% "
+			send "&3 /setrole <jogador> &f- &7Lista todos os cargos"
+			send "&3 /setrole <jogador> <role> &f- &7Seta um cargo específico"
 			send "&3 /setrole atualizar &f- &7Atualiza o skript%nl%"
 		else:
 			arg 1 == "atualizar":
-				update player {khsr::check_update} "KhSetRole" script
-				stop
-			arg 2 is set:
-				yml value "roles.%arg 2%" from file "plugins/KhCore/roles.yml" exists:
-					set {_name} to yml value "roles.%arg 2%.name" from file "plugins/KhCore/roles.yml"
-					set {_prefix} to yml value "roles.%arg 2%.prefix" from file "plugins/KhCore/roles.yml"
-					set {_color} to khcore_getLastColor("%{_prefix}%")
-					set {_role} to "%{_color}%%{_name}%"
-					set {_arg2} to arg 2
-					set {_player} to arg 1
-					khcore_playSound(player, CLICK, 1, 15)
-					open chest inventory with 4 rows named replacer "{player}" with (arg 1 parsed as offlineplayer)'s displayname in "Setar cargo para {player}" to player
-					wait a tick
-					make a gui slot 13 of player with skull of arg 1 parsed as offlineplayer without nbt named khcore_roles_getColored(arg 1 parsed as offlineplayer) with lore replacer "{roles}" with colored {_role} in replacer "{role}" with khcore_roles_getColoredGroup(arg 1 parsed as offlineplayer) in "&fCargo atual: {role}||&fCargo a ser setado: {roles}" to run:
-						khcore_playSound(player, ITEM_PICKUP, 1, 15)
-					make a gui slot 21 of player with green stained hardened clay without nbt named "&aConfirmar" to run:
-						close player's inventory
-						set {_p} to khcore_roles_getColored({_player} parsed as offlineplayer)
-						send "&aVocê setou o cargo %{_role}%&a para %{_p}%&a."
-						make console execute command replacer "{role}" with {_arg2} in replacer "{player}" with {_player} parsed as offlineplayer's displayname in yaml value "messages.command" from "khsr.language"
-					make a gui slot 23 of player with red stained hardened clay without nbt named "&cCancelar" to run:
-						close player's inventory
+				khcore update player {khsr::check_update} "KhSetRole" script
 			else:
-				khcore_playSound(player, CLICK, 1, 15)
-				open chest inventory with 4 rows named replacer "{player}" with (arg 1 parsed as offlineplayer)'s displayname in "Setar cargo para {player}" to player
-				wait a tick
-				set {_slot} to 10
-				loop skutil yaml nodes "roles" from file "plugins/KhCore/roles.yml":
-					set {_name} to yml value "roles.%loop-value%.name" from file "plugins/KhCore/roles.yml"
-					set {_prefix} to yml value "roles.%loop-value%.prefix" from file "plugins/KhCore/roles.yml"
-					set {_color} to khcore_getLastColor("%{_prefix}%")
-					set {_role} to "%{_color}%%{_name}%"
-					set {_arg} to arg 1
-					set {_arg2} to loop-value
-					make a gui slot {_slot} of player with stick without nbt named colored {_role} to run:
-						make player execute command "setrole %{_arg}% %{_arg2}%"
-					add 1 to {_slot}
-					{_slot} is 17:
-						add 2 to {_slot}
+				arg 1 parsed as offlineplayer is online:
+					yaml list "options.roles-op" from "khsr.language" contains khcore_roles_getRole(arg 1 parsed as offlineplayer):
+						send yaml value "messages.role-op" from "khsr.language"
+						stop
+					arg 2 is set:
+						yml value "roles.%arg 2%" from file "plugins/KhCore/roles.yml" exists
+						khsr_checkPosInd(player, khcore_roles_getRole(arg 1 parsed as offlineplayer)) is true:
+							khsr_checkPosInd(player, arg 2) is true:
+								khsr_setGroup(player, arg 1 parsed as player, arg 2)
+							else:
+								send yaml value "messages.higher" from "khsr.language"
+						else:
+							send "&4Você não pode setar um cargo para este jogador!"
+					else:
+						khsr_listGroups(player, arg 1 parsed as player)
+				else:
+					send yaml value "messages.offline" from "khsr.language"
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────── #
 # filemanager
 function khsr_filemanager():
-	khcore_downGithub("KhSetRole/language.yml", "https://raw.githubusercontent.com/KickHolse/KhSetRole/main/files/language")
+	khcore downgit "KhSetRole/language.yml" "https://raw.githubusercontent.com/KickHolse/KhSetRole/main/files/language"
 	loop currently loaded yaml files:
 		loop-value contains "khsr.language"
 		unload yaml loop-value
@@ -79,6 +61,145 @@ function khsr_filemanager():
 
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────── #
 # functions
+function khsr_setGroup(p: player, arg: offlineplayer, cargo: text):
+	yaml value "options.type" from "khsr.language" is not "gui" or "json":
+		send "%nl% &cOs argumentos inserido em 'options.type' na linguagem não existe.%nl% " to {_p}
+		send "&7 Utilize 'gui' ou 'json'%nl%" to {_p}
+	set {_argc} to khcore_roles_getColored({_arg})
+	yaml value "options.type" from "khsr.language" is "json":
+		set {_name} to yml value "roles.%{_cargo}%.name" from file "plugins/KhCore/roles.yml"
+		set {_prefix} to yml value "roles.%{_cargo}%.prefix" from file "plugins/KhCore/roles.yml"
+		set {_color} to khcore_getLastColor("%{_prefix}%")
+		set {_role} to colored "%{_color}%%{_name}%"
+		send replacer "{player}" with {_argc} in replacer "{role}" with {_role} in yaml value "messages.sucess" from "khsr.language" to {_p}
+		make console execute command replacer "{role}" with {_cargo} in replacer "{player}" with {_arg}'s displayname in yaml value "messages.command" from "khsr.language"
+	yaml value "options.type" from "khsr.language" is "gui":
+		set {_name} to yml value "roles.%{_cargo}%.name" from file "plugins/KhCore/roles.yml"
+		set {_prefix} to yml value "roles.%{_cargo}%.prefix" from file "plugins/KhCore/roles.yml"
+		set {_color} to khcore_getLastColor("%{_prefix}%")
+		set {_role} to colored "%{_color}%%{_name}%"
+		khcore_playSound({_p}, CLICK, 1, 15)
+		open chest inventory with 4 rows named replacer "{player}" with {_arg}'s displayname in "Setar cargo para {player}" to {_p}
+		wait a tick
+		make a gui slot 13 of {_p} with skull of {_arg} without nbt named {_argc} with lore replacer "{roles}" with {_role} in replacer "{role}" with khcore_roles_getColoredGroup({_arg}) in "&fCargo atual: {role}||&fCargo a ser setado: {roles}" to run:
+			khcore_playSound({_p}, ITEM_PICKUP, 1, 15)
+		make a gui slot 21 of {_p} with green stained hardened clay without nbt named "&aConfirmar" to run:
+			close {_p}'s inventory
+			send replacer "{player}" with {_argc} in replacer "{role}" with {_role} in yaml value "messages.sucess" from "khsr.language"
+			make console execute command replacer "{role}" with {_cargo} in replacer "{player}" with {_arg}'s displayname in yaml value "messages.command" from "khsr.language"
+		make a gui slot 23 of {_p} with red stained hardened clay without nbt named "&cCancelar" to run:
+			close {_p}'s inventory
+function khsr_listGroups(p: player, arg: offlineplayer):
+	yaml value "options.type" from "khsr.language" is not "gui" or "json":
+		send "%nl% &cOs argumentos inserido em 'options.type' na linguagem não existe.%nl% " to {_p}
+		send "&7 Utilize 'gui' ou 'json'%nl%" to {_p}
+	set {_argc} to khcore_roles_getColored({_arg})
+	yaml value "options.type" from "khsr.language" is "json":
+		send replacer "{player}" with khcore_roles_getColored({_arg}) in replacer "\n" with newline in yaml value "messages.json.title" from "khsr.language" to {_p}
+		loop skutil yaml nodes "roles" from file "plugins/KhCore/roles.yml":
+			#khsr_checkPos({_p}) is true:
+			set {_pos} to size of skutil yaml nodes "roles" from file "plugins/KhCore/roles.yml"
+			loop skutil yaml nodes "roles" from file "plugins/KhCore/roles.yml":
+				loop-value-2 is loop-value-1:
+					set {_pos.%loop-value-1%} to {_pos}
+				remove 1 from {_pos}
+			{_pos.%loop-value-1%} > {position.%{_p}%}:
+				set {_name} to yml value "roles.%loop-value%.name" from file "plugins/KhCore/roles.yml"
+				set {_prefix} to yml value "roles.%loop-value%.prefix" from file "plugins/KhCore/roles.yml"
+				set {_color} to khcore_getLastColor("%{_prefix}%")
+				set {_role} to colored "%{_color}%%{_name}%"
+				set {_list} to replacer "{role}" with {_role} in yaml value "messages.json.list" from "khsr.language"
+				send "<command:/setrole %{_arg}% %loop-value%>%{_list}%<reset>" to {_p}
+		send "" to {_p}
+	yaml value "options.type" from "khsr.language" is "gui":
+		khcore_playSound({_p}, CLICK, 1, 15)
+		open chest inventory with khsr_getRows() rows named replacer "{player}" with {_arg}'s displayname in "Setar cargo para {player}" to {_p}
+		wait a tick
+		set {_slot} to 10
+		loop skutil yaml nodes "roles" from file "plugins/KhCore/roles.yml":
+			#khsr_checkPos({_p}) is true:
+			set {_pos} to size of skutil yaml nodes "roles" from file "plugins/KhCore/roles.yml"
+			loop skutil yaml nodes "roles" from file "plugins/KhCore/roles.yml":
+				loop-value-2 is loop-value-1:
+					set {_pos.%loop-value-1%} to {_pos}
+				remove 1 from {_pos}
+			{_pos.%loop-value-1%} > {position.%{_p}%}:
+				set {_name} to yml value "roles.%loop-value%.name" from file "plugins/KhCore/roles.yml"
+				set {_prefix} to yml value "roles.%loop-value%.prefix" from file "plugins/KhCore/roles.yml"
+				set {_color} to khcore_getLastColor("%{_prefix}%")
+				set {_role} to colored "%{_color}%%{_name}%"
+				set {_item} to khsr_getColors(uncolored {_color})
+				set {_cargo} to loop-value
+				make a gui slot {_slot} of {_p} with khsr_getColors(uncolored {_color}) without nbt named colored {_role} to run:
+					make {_p} execute command "setrole %{_arg}% %{_cargo}%"
+				add 1 to {_slot}
+				{_slot} is 17 or 26 or 35:
+					add 2 to {_slot}
+				{_slot} is 43:
+					stop
+function khsr_getColors(color: text) :: material:
+	colored {_color} is "§0":
+		return player head with custom nbt "{SkullOwner:{Id:""063df521-537b-48d4-8fab-d303500e29ca"",Properties:{textures:[{Value:""eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTY3YTJmMjE4YTZlNmUzOGYyYjU0NWY2YzE3NzMzZjRlZjliYmIyODhlNzU0MDI5NDljMDUyMTg5ZWUifX19""}]}}}"
+	colored {_color} is "§1":
+		return player head with custom nbt "{SkullOwner:{Id:""8a4771f0-1b60-47e7-95d7-827bdea8166f"",Properties:{textures:[{Value:""eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTJjZDI3MmVlYjM4YmY3ODNhOThhNDZmYTFlMmU4ZDQ2MmQ4NTJmYmFhZWRlZjBkY2UyYzFmNzE3YTJhIn19fQ==""}]}}}"
+	colored {_color} is "§2":
+		return player head with custom nbt "{SkullOwner:{Id:""9113c2d9-acfd-4f7e-bdb0-cbd029a4e3f4"",Properties:{textures:[{Value:""eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOGU5YjI3ZmNjZDgwOTIxYmQyNjNjOTFkYzUxMWQwOWU5YTc0NjU1NWU2YzljYWQ1MmU4NTYyZWQwMTgyYTJmIn19fQ==""}]}}}"
+	colored {_color} is "§3":
+		return player head with custom nbt "{SkullOwner:{Id:""09f14600-a016-4979-83b8-95610cbd8e9f"",Properties:{textures:[{Value:""eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTViOWE0ODQ2N2YwMjEyYWE2ODg2NGU2MzQyMTE2ZjhmNzlhMjc1NDU0YmYyMTVmNjdmNzAxYTZmMmM4MTgifX19""}]}}}"
+	colored {_color} is "§4":
+		return player head with custom nbt "{SkullOwner:{Id:""5c33b8a3-6608-4402-94df-e87f7f6848db"",Properties:{textures:[{Value:""eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGY0ZGMzYzM3NTNiZjViMGI3ZjA4MWNkYjQ5YjgzZDM3NDI4YTEyZTQxODdmNjM0NmRlYzA2ZmFjNTRjZSJ9fX0=""}]}}}"
+	colored {_color} is "§5":
+		return player head with custom nbt "{SkullOwner:{Id:""46b5e8fd-1468-4462-ab4a-3ed65789f403"",Properties:{textures:[{Value:""eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTMyYWUyY2I4ZDJhZTYxNTE0MWQyYzY1ODkyZjM2NGZjYWRkZjczZmRlYzk5YmUxYWE2ODc0ODYzZWViNWMifX19""}]}}}"
+	colored {_color} is "§6":
+		return player head with custom nbt "{SkullOwner:{Id:""1df5c53a-d181-4f49-9200-785b78160f94"",Properties:{textures:[{Value:""eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMmM0ODg2ZWYzNjJiMmM4MjNhNmFhNjUyNDFjNWM3ZGU3MWM5NGQ4ZWM1ODIyYzUxZTk2OTc2NjQxZjUzZWEzNSJ9fX0=""}]}}}"
+	colored {_color} is "§7":
+		return player head with custom nbt "{SkullOwner:{Id:""88d30ea4-2521-4df7-98b5-fdd837b3c52f"",Properties:{textures:[{Value:""eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzhlMjk1NzY5OWJjOThhNGI1ZDYzNGFiNzE4NjdlZWIxODZiOTM0YmRiNjVkMmM0YjlkY2MyYjYxM2NmNSJ9fX0=""}]}}}"
+	colored {_color} is "§8":
+		return player head with custom nbt "{SkullOwner:{Id:""96411e87-efd7-47d7-a688-8655222a038a"",Properties:{textures:[{Value:""eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNjA4ZjMyMzQ2MmZiNDM0ZTkyOGJkNjcyODYzOGM5NDRlZTNkODEyZTE2MmI5YzZiYTA3MGZjYWM5YmY5In19fQ==""}]}}}"
+	colored {_color} is "§9":
+		return player head with custom nbt "{SkullOwner:{Id:""51d4b34d-d594-4b14-a1b9-a4bcd63ecb1d"",Properties:{textures:[{Value:""eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjgxNTdiNGRjNWVmYzIxNzM1Mjg5NDQ3MWMxMTZkMzlhMDM0ZmMzOTdjMjQ1MzlhOWQwZWViMmE0NjVjYSJ9fX0=""}]}}}"
+	colored {_color} is "§a":
+		return player head with custom nbt "{SkullOwner:{Id:""028c59eb-fd0d-454d-b140-249a24942fdd"",Properties:{textures:[{Value:""eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTllNGJkY2YxNzJkNWRjNzdjMmJkNGUzN2FkOTg1Mzk5YTlmMmNkZWJmNzI0NjM5MjllYTRiNjY2ZWY2ZjgwIn19fQ==""}]}}}"
+	colored {_color} is "§b":
+		return player head with custom nbt "{SkullOwner:{Id:""89c31154-c27e-4168-86ed-be87320b0d0c"",Properties:{textures:[{Value:""eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMDdjNzhmM2VlNzgzZmVlY2QyNjkyZWJhNTQ4NTFkYTVjNDMyMzA1NWViZDJmNjgzY2QzZTgzMDJmZWE3YyJ9fX0=""}]}}}"
+	colored {_color} is "§c":
+		return player head with custom nbt "{SkullOwner:{Id:""6edc03f4-71d9-4cc8-8632-ecb08c304a72"",Properties:{textures:[{Value:""eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNWZkZTNiZmNlMmQ4Y2I3MjRkZTg1NTZlNWVjMjFiN2YxNWY1ODQ2ODRhYjc4NTIxNGFkZDE2NGJlNzYyNGIifX19""}]}}}"
+	colored {_color} is "§d":
+		return player head with custom nbt "{SkullOwner:{Id:""5560070f-beb6-401d-abc0-f20a4f7d8f53"",Properties:{textures:[{Value:""eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzNiMGFmODNkMGM3MjhhZWVjYTQ3MGYwOGExZDc1ZjQxY2VlMjUzYTM1NzNiYTQxNTdjYTI0MzNlNmMzNiJ9fX0=""}]}}}"
+	colored {_color} is "§e":
+		return player head with custom nbt "{SkullOwner:{Id:""11d8b86f-8c1c-4a47-bc34-26dba4640a5c"",Properties:{textures:[{Value:""eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYzY0MTY4MmY0MzYwNmM1YzlhZDI2YmM3ZWE4YTMwZWU0NzU0N2M5ZGZkM2M2Y2RhNDllMWMxYTI4MTZjZjBiYSJ9fX0=""}]}}}"
+	colored {_color} is "§f":
+		return player head with custom nbt "{SkullOwner:{Id:""8868682c-5cd8-430f-ad06-ca6dae4903ed"",Properties:{textures:[{Value:""eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzY2YTVjOTg5MjhmYTVkNGI1ZDViOGVmYjQ5MDE1NWI0ZGRhMzk1NmJjYWE5MzcxMTc3ODE0NTMyY2ZjIn19fQ==""}]}}}"
+	return barrier
+function khsr_getRows() :: number:
+	set {_x} to size of yaml nodes "roles" from file "plugins/KhCore/roles.yml"
+	{_x} <= 7:
+		return 3
+	{_x} <= 14:
+		return 4
+	{_x} <= 21:
+		return 5
+	return 6
+function khsr_checkPos(p: player) :: boolean:
+	loop skutil yaml nodes "roles" from file "plugins/KhCore/roles.yml":
+		set {_pos} to size of skutil yaml nodes "roles" from file "plugins/KhCore/roles.yml"
+		loop skutil yaml nodes "roles" from file "plugins/KhCore/roles.yml":
+			loop-value-2 is loop-value-1:
+				set {_pos.%loop-value-1%} to {_pos}
+			remove 1 from {_pos}
+		{_pos.%loop-value-1%} > {position.%{_p}%}:
+			return true
+		return false
+function khsr_checkPosInd(p: player, role: text) :: boolean:
+	set {_pos} to size of skutil yaml nodes "roles" from file "plugins/KhCore/roles.yml"
+	loop skutil yaml nodes "roles" from file "plugins/KhCore/roles.yml":
+		loop-value is {_role}:
+			set {_pos.%{_role}%} to {_pos}
+		remove 1 from {_pos}
+	{_pos.%{_role}%} > {position.%{_p}%}:
+		return true
+	return false
+
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────── #
 # load
 load:
