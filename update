@@ -83,6 +83,7 @@ function khsr_filemanager():
 # load
 load:
 	khsr_filemanager()
+	delete {khsr::check_update}
 	wait 1 second
 	text from "https://api.spigotmc.org/legacy/update.php?resource=68835" != "{@version}":
 		set {khsr::check_update} to true
