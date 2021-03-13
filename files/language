@@ -1,5 +1,20 @@
 # Skript feito por Kick Holse
 # Discord: https://www.kskripts.tk/discord
 
+options:
+# Utilize 'json' ou 'gui'
+  type: gui
+# Se o jogador tiver este cargo, você não conseguirá setar um grupo
+  roles-op:
+  - 'master'
+
 messages:
   command: 'pex user {player} group set {role}'
+  offline: '&cEste jogador não esta online no momento.'
+  role-op: '&cO cargo deste jogador não pode ser alterado.'
+  xv: '&cO cargo deste jogador é superior ao seu!'
+  higher: '&cVocê não pode setar um cargo superior ao seu.'
+  sucess: '&aVocê setou o cargo {role} &apara {player}&a.'
+  json:
+    title: '\n &aSetar cargo para {player}\n '
+    list: '  {role} &f- &7Clique para setar este cargo'
