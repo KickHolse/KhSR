@@ -10,7 +10,7 @@
 #                   ░  ░         ░                    #
 # ─────────────────────────────────────────────────── #
 options:
-#	Nome: KhSetRole | Autor: Kiberzn
+#	Nome: KhSetRole | Autor: Kick Holse
 	version: 1.0
 
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────── #
@@ -33,23 +33,27 @@ command /setrole [<text = help>] [<text>]:
 			arg 1 == "atualizar":
 				khcore update player {khsr::check_update} "KhSetRole" script
 			else:
-				arg 1 parsed as offlineplayer is online:
-					yaml list "options.roles-op" from "khsr.language" contains khcore_roles_getRole(arg 1 parsed as offlineplayer):
-						send yaml value "messages.role-op" from "khsr.language"
-						stop
-					arg 2 is set:
-						yml value "roles.%arg 2%" from file "plugins/KhCore/roles.yml" exists
-						khsr_checkPosInd(player, khcore_roles_getRole(arg 1 parsed as offlineplayer)) is true:
-							khsr_checkPosInd(player, arg 2) is true:
-								khsr_setGroup(player, arg 1 parsed as player, arg 2)
+				arg 1 parsed as offlineplayer is not player:
+					arg 1 parsed as offlineplayer is online:
+						yaml list "options.roles-op" from "khsr.language" contains khcore_roles_getRole(arg 1 parsed as offlineplayer):
+							send yaml value "messages.role-op" from "khsr.language"
+							stop
+						arg 2 is set:
+							yml value "roles.%arg 2%" from file "plugins/KhCore/roles.yml" exists
+							khsr_checkPosInd(player, khcore_roles_getRole(arg 1 parsed as offlineplayer)) is true:
+								khsr_checkPosInd(player, arg 2) is true:
+									khsr_setGroup(player, arg 1 parsed as player, arg 2)
+								else:
+									send yaml value "messages.higher" from "khsr.language"
 							else:
-								send yaml value "messages.higher" from "khsr.language"
+								send yaml value "messages.lower" from "khsr.language"
 						else:
-							send "&4Você não pode setar um cargo para este jogador!"
+							khsr_listGroups(player, arg 1 parsed as player)
 					else:
-						khsr_listGroups(player, arg 1 parsed as player)
+						send yaml value "messages.offline" from "khsr.language"
 				else:
-					send yaml value "messages.offline" from "khsr.language"
+					send yaml value "messages.self" from "khsr.language"
+
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────── #
 # filemanager
 function khsr_filemanager():
@@ -62,81 +66,55 @@ function khsr_filemanager():
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────── #
 # functions
 function khsr_setGroup(p: player, arg: offlineplayer, cargo: text):
-	yaml value "options.type" from "khsr.language" is not "gui" or "json":
-		send "%nl% &cOs argumentos inserido em 'options.type' na linguagem não existe.%nl% " to {_p}
-		send "&7 Utilize 'gui' ou 'json'%nl%" to {_p}
+	khsr_checkType({_p})
 	set {_argc} to khcore_roles_getColored({_arg})
 	yaml value "options.type" from "khsr.language" is "json":
-		set {_name} to yml value "roles.%{_cargo}%.name" from file "plugins/KhCore/roles.yml"
-		set {_prefix} to yml value "roles.%{_cargo}%.prefix" from file "plugins/KhCore/roles.yml"
-		set {_color} to khcore_getLastColor("%{_prefix}%")
-		set {_role} to colored "%{_color}%%{_name}%"
-		send replacer "{player}" with {_argc} in replacer "{role}" with {_role} in yaml value "messages.sucess" from "khsr.language" to {_p}
-		make console execute command replacer "{role}" with {_cargo} in replacer "{player}" with {_arg}'s displayname in yaml value "messages.command" from "khsr.language"
+		send replacer "{player}" with {_argc} in replacer "{role}" with khsr_getColored({_cargo}) in yaml value "messages.sucess" from "khsr.language" to {_p}
+		make console execute command replacer "{role}" with {_cargo} in replacer "{player}" with {_arg}'s displayname in yaml value "options.command" from "khsr.language"
 	yaml value "options.type" from "khsr.language" is "gui":
-		set {_name} to yml value "roles.%{_cargo}%.name" from file "plugins/KhCore/roles.yml"
-		set {_prefix} to yml value "roles.%{_cargo}%.prefix" from file "plugins/KhCore/roles.yml"
-		set {_color} to khcore_getLastColor("%{_prefix}%")
-		set {_role} to colored "%{_color}%%{_name}%"
 		khcore_playSound({_p}, CLICK, 1, 15)
-		open chest inventory with 4 rows named replacer "{player}" with {_arg}'s displayname in "Setar cargo para {player}" to {_p}
+		open chest inventory with yaml value "confirm.gui.rows" from "khsr.language" rows named replacer "{player}" with {_arg}'s displayname in yaml value "confirm.gui.title" from "khsr.language" to {_p}
 		wait a tick
-		make a gui slot 13 of {_p} with skull of {_arg} without nbt named {_argc} with lore replacer "{roles}" with {_role} in replacer "{role}" with khcore_roles_getColoredGroup({_arg}) in "&fCargo atual: {role}||&fCargo a ser setado: {roles}" to run:
-			khcore_playSound({_p}, ITEM_PICKUP, 1, 15)
-		make a gui slot 21 of {_p} with green stained hardened clay without nbt named "&aConfirmar" to run:
-			close {_p}'s inventory
-			send replacer "{player}" with {_argc} in replacer "{role}" with {_role} in yaml value "messages.sucess" from "khsr.language"
-			make console execute command replacer "{role}" with {_cargo} in replacer "{player}" with {_arg}'s displayname in yaml value "messages.command" from "khsr.language"
-		make a gui slot 23 of {_p} with red stained hardened clay without nbt named "&cCancelar" to run:
-			close {_p}'s inventory
+		loop skutil yaml nodes "confirm.gui.items" from file "plugins/KhSetRole/language.yml":
+			set {_item} to replacer "{player}" with {_arg}'s displayname in yaml value "confirm.gui.items.%loop-value%.icon" from "khsr.language"
+			set {_item} to khcore_getItem({_item})
+			set {_lore} to replacer "{role}" with khsr_getColored({_cargo}) in replacer "{current_role}" with khcore_roles_getColoredGroup({_arg}) in replacer "\n" with "||" in khcore_getLore(yaml value "confirm.gui.items.%loop-value%.icon" from "khsr.language")
+			set {_x} to loop-value
+			make a gui slot yaml value "confirm.gui.items.%loop-value%.slot" from "khsr.language" of {_p} with {_item} without nbt named replacer "{colored}" with {_argc} in khcore_getName(yaml value "confirm.gui.items.%loop-value%.icon" from "khsr.language") with lore {_lore} to run:
+				yaml value "confirm.gui.items.%{_x}%.execute" from "khsr.language" contains "close":
+					close {_p}'s inventory
+				yaml value "confirm.gui.items.%{_x}%.execute" from "khsr.language" contains "confirm":
+					close {_p}'s inventory
+					send replacer "{player}" with {_argc} in replacer "{role}" with khsr_getColored({_cargo}) in yaml value "messages.sucess" from "khsr.language"
+					make console execute command replacer "{role}" with {_cargo} in replacer "{player}" with {_arg}'s displayname in yaml value "options.command" from "khsr.language"
+				yaml value "confirm.gui.items.%{_x}%.execute" from "khsr.language" contains "none":
+					khcore_playSound({_p}, ITEM_PICKUP, 1, 15)
 function khsr_listGroups(p: player, arg: offlineplayer):
-	yaml value "options.type" from "khsr.language" is not "gui" or "json":
-		send "%nl% &cOs argumentos inserido em 'options.type' na linguagem não existe.%nl% " to {_p}
-		send "&7 Utilize 'gui' ou 'json'%nl%" to {_p}
+	khsr_checkType({_p})
 	set {_argc} to khcore_roles_getColored({_arg})
 	yaml value "options.type" from "khsr.language" is "json":
-		send replacer "{player}" with khcore_roles_getColored({_arg}) in replacer "\n" with newline in yaml value "messages.json.title" from "khsr.language" to {_p}
+		send replacer "{player}" with khcore_roles_getColored({_arg}) in replacer "\n" with newline in yaml value "listgroups.json.header" from "khsr.language" to {_p}
 		loop skutil yaml nodes "roles" from file "plugins/KhCore/roles.yml":
-			#khsr_checkPos({_p}) is true:
-			set {_pos} to size of skutil yaml nodes "roles" from file "plugins/KhCore/roles.yml"
-			loop skutil yaml nodes "roles" from file "plugins/KhCore/roles.yml":
-				loop-value-2 is loop-value-1:
-					set {_pos.%loop-value-1%} to {_pos}
-				remove 1 from {_pos}
-			{_pos.%loop-value-1%} > {position.%{_p}%}:
-				set {_name} to yml value "roles.%loop-value%.name" from file "plugins/KhCore/roles.yml"
-				set {_prefix} to yml value "roles.%loop-value%.prefix" from file "plugins/KhCore/roles.yml"
-				set {_color} to khcore_getLastColor("%{_prefix}%")
-				set {_role} to colored "%{_color}%%{_name}%"
-				set {_list} to replacer "{role}" with {_role} in yaml value "messages.json.list" from "khsr.language"
+			khsr_checkPosInd({_p}, "%loop-value%") is true:
+				set {_list} to replacer "{role}" with khsr_getColored("%loop-value%") in yaml value "listgroups.json.list" from "khsr.language"
 				send "<command:/setrole %{_arg}% %loop-value%>%{_list}%<reset>" to {_p}
 		send "" to {_p}
 	yaml value "options.type" from "khsr.language" is "gui":
 		khcore_playSound({_p}, CLICK, 1, 15)
-		open chest inventory with khsr_getRows() rows named replacer "{player}" with {_arg}'s displayname in "Setar cargo para {player}" to {_p}
+		open chest inventory with khsr_getRows() rows named yaml value "listgroups.gui.title" from "khsr.language" to {_p}
 		wait a tick
 		set {_slot} to 10
 		loop skutil yaml nodes "roles" from file "plugins/KhCore/roles.yml":
-			#khsr_checkPos({_p}) is true:
-			set {_pos} to size of skutil yaml nodes "roles" from file "plugins/KhCore/roles.yml"
-			loop skutil yaml nodes "roles" from file "plugins/KhCore/roles.yml":
-				loop-value-2 is loop-value-1:
-					set {_pos.%loop-value-1%} to {_pos}
-				remove 1 from {_pos}
-			{_pos.%loop-value-1%} > {position.%{_p}%}:
-				set {_name} to yml value "roles.%loop-value%.name" from file "plugins/KhCore/roles.yml"
-				set {_prefix} to yml value "roles.%loop-value%.prefix" from file "plugins/KhCore/roles.yml"
-				set {_color} to khcore_getLastColor("%{_prefix}%")
-				set {_role} to colored "%{_color}%%{_name}%"
-				set {_item} to khsr_getColors(uncolored {_color})
+			khsr_checkPosInd({_p}, "%loop-value%") is true:
+				set {_name} to khsr_getColored("%loop-value%")
 				set {_cargo} to loop-value
-				make a gui slot {_slot} of {_p} with khsr_getColors(uncolored {_color}) without nbt named colored {_role} to run:
+				make a gui slot {_slot} of {_p} with khsr_getColors(khcore_getLastColor(khsr_getColored("%loop-value%"))) without nbt named {_name} to run:
 					make {_p} execute command "setrole %{_arg}% %{_cargo}%"
 				add 1 to {_slot}
 				{_slot} is 17 or 26 or 35:
 					add 2 to {_slot}
 				{_slot} is 43:
-					stop
+					exit loop
 function khsr_getColors(color: text) :: material:
 	colored {_color} is "§0":
 		return player head with custom nbt "{SkullOwner:{Id:""063df521-537b-48d4-8fab-d303500e29ca"",Properties:{textures:[{Value:""eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTY3YTJmMjE4YTZlNmUzOGYyYjU0NWY2YzE3NzMzZjRlZjliYmIyODhlNzU0MDI5NDljMDUyMTg5ZWUifX19""}]}}}"
@@ -180,16 +158,6 @@ function khsr_getRows() :: number:
 	{_x} <= 21:
 		return 5
 	return 6
-function khsr_checkPos(p: player) :: boolean:
-	loop skutil yaml nodes "roles" from file "plugins/KhCore/roles.yml":
-		set {_pos} to size of skutil yaml nodes "roles" from file "plugins/KhCore/roles.yml"
-		loop skutil yaml nodes "roles" from file "plugins/KhCore/roles.yml":
-			loop-value-2 is loop-value-1:
-				set {_pos.%loop-value-1%} to {_pos}
-			remove 1 from {_pos}
-		{_pos.%loop-value-1%} > {position.%{_p}%}:
-			return true
-		return false
 function khsr_checkPosInd(p: player, role: text) :: boolean:
 	set {_pos} to size of skutil yaml nodes "roles" from file "plugins/KhCore/roles.yml"
 	loop skutil yaml nodes "roles" from file "plugins/KhCore/roles.yml":
@@ -199,6 +167,15 @@ function khsr_checkPosInd(p: player, role: text) :: boolean:
 	{_pos.%{_role}%} > {position.%{_p}%}:
 		return true
 	return false
+function khsr_checkType(p: player):
+	yaml value "options.type" from "khsr.language" is not "gui" or "json":
+		send "%nl% &cOs argumentos inserido em 'options.type' na linguagem não existe.%nl% " to {_p}
+		send "&7 Utilize 'gui' ou 'json'%nl%" to {_p}
+function khsr_getColored(role: text) :: text:
+	set {_name} to yml value "roles.%{_role}%.name" from file "plugins/KhCore/roles.yml"
+	set {_p} to yml value "roles.%{_role}%.prefix" from file "plugins/KhCore/roles.yml"
+	set {_color} to khcore_getLastColor("%{_p}%")
+	return colored "%{_color}%%{_name}%"
 
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────── #
 # load
