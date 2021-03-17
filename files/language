@@ -2,19 +2,41 @@
 # Discord: https://www.kskripts.tk/discord
 
 options:
-# Utilize 'json' ou 'gui'
-  type: gui
-# Se o jogador tiver este cargo, você não conseguirá setar um grupo
+# Use 'json' or 'gui'
+  type: 'gui'
+# Command that will be executed to set the player's group
+  command: 'pex user {player} group set {role}'
+# If the player has this position, you will not be able to set a group
   roles-op:
   - 'master'
 
 messages:
-  command: 'pex user {player} group set {role}'
   offline: '&cEste jogador não esta online no momento.'
   role-op: '&cO cargo deste jogador não pode ser alterado.'
-  xv: '&cO cargo deste jogador é superior ao seu!'
+  lower: '&cO seu cargo é inferior ao cargo do jogador mencionado!'
   higher: '&cVocê não pode setar um cargo superior ao seu.'
   sucess: '&aVocê setou o cargo {role} &apara {player}&a.'
+  self: '&cVocê não pode setar um cargo para si mesmo.'
+listgroups:
   json:
-    title: '\n &aSetar cargo para {player}\n '
+    header: '\n &aSetar cargo para {player}\n '
     list: '  {role} &f- &7Clique para setar este cargo'
+  gui:
+    title: 'Lista de grupos'
+confirm:
+  gui:
+    title: 'Setar cargo para {player}'
+    rows: 4
+    items:
+      player:
+        slot: 13
+        execute: 'none'
+        icon: 'item>HEAD:dono={player} : nome>{colored} : desc>&fCargo atual: {current_role}\n&fCargo a ser setado: {role}'
+      confirm:
+        slot: 21
+        execute: 'confirm'
+        icon: 'item>159:13 : nome>&aConfirmar : desc>'
+      cancel:
+        slot: 23
+        execute: 'close'
+        icon: 'item>159:14 : nome>&cCancelar : desc>'
