@@ -16,21 +16,21 @@ options:
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────── #
 # events
 join:
-	khcore_notifyUpdate(player, "KhSetRole", "khsr", "68527", "{@version}", "setrole atualizar")
+	khcore_notifyUpdate(player, "KhSetRole", "khsr", "90601", "{@version}", "setrole atualizar")
 
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────── #
 # commands
-command /setrole [<text = help>] [<text>]:
+command setrole [<text = help>] [<text>]:
 	permission: khsr.*
 	permission message: §3[KhSR] §7v{@version} §f- §7Criado por §6Kick Holse§7.
 	trigger:
-		arg 1 == "help":
+		arg 1 = "help":
 			send "%nl%&e  Ajuda - SetRole 1/1%nl% "
 			send "&3 /setrole <jogador> &f- &7Lista todos os cargos"
 			send "&3 /setrole <jogador> <role> &f- &7Seta um cargo específico"
 			send "&3 /setrole atualizar &f- &7Atualiza o skript%nl%"
 		else:
-			arg 1 == "atualizar":
+			arg 1 = "atualizar":
 				khcore update player {khsr::check_update} "KhSetRole" script
 			else:
 				arg 1 parsed as offlineplayer is not player:
@@ -71,6 +71,7 @@ function khsr_setGroup(p: player, arg: offlineplayer, cargo: text):
 	yaml value "options.type" from "khsr.language" is "json":
 		send replacer "{player}" with {_argc} in replacer "{role}" with khsr_getColored({_cargo}) in yaml value "messages.sucess" from "khsr.language" to {_p}
 		make console execute command replacer "{role}" with {_cargo} in replacer "{player}" with {_arg}'s displayname in yaml value "options.command" from "khsr.language"
+		khcore_roles_setup({_arg}, true)
 	yaml value "options.type" from "khsr.language" is "gui":
 		khcore_playSound({_p}, CLICK, 1, 15)
 		open chest inventory with yaml value "confirm.gui.rows" from "khsr.language" rows named replacer "{player}" with {_arg}'s displayname in yaml value "confirm.gui.title" from "khsr.language" to {_p}
@@ -87,6 +88,7 @@ function khsr_setGroup(p: player, arg: offlineplayer, cargo: text):
 					close {_p}'s inventory
 					send replacer "{player}" with {_argc} in replacer "{role}" with khsr_getColored({_cargo}) in yaml value "messages.sucess" from "khsr.language"
 					make console execute command replacer "{role}" with {_cargo} in replacer "{player}" with {_arg}'s displayname in yaml value "options.command" from "khsr.language"
+					khcore_roles_setup({_arg}, true)
 				yaml value "confirm.gui.items.%{_x}%.execute" from "khsr.language" contains "none":
 					khcore_playSound({_p}, ITEM_PICKUP, 1, 15)
 function khsr_listGroups(p: player, arg: offlineplayer):
@@ -183,7 +185,7 @@ load:
 	khsr_filemanager()
 	delete {khsr::check_update}
 	wait 1 second
-	text from "https://api.spigotmc.org/legacy/update.php?resource=68835" is not "{@version}":
+	text from "https://api.spigotmc.org/legacy/update.php?resource=90601" is not "{@version}":
 		set {khsr::check_update} to true
 		send "&3[KHSR] &cYou are not using the latest version of skript" to console
 	else:
