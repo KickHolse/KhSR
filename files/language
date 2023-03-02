@@ -1,5 +1,5 @@
-# Skript feito por Kick Holse
-# Discord: https://www.kskripts.tk/discord
+# crafted by kick#0808
+# www.kskripts.tk
 
 options:
 # Use 'json' or 'gui'
@@ -7,36 +7,71 @@ options:
 # Command that will be executed to set the player's group
   command: 'pex user {player} group set {role}'
 # If the player has this position, you will not be able to set a group
-  roles-op:
+  roles_op:
   - 'master'
 
 messages:
-  offline: '&cEste jogador não esta online no momento.'
-  role-op: '&cO cargo deste jogador não pode ser alterado.'
-  lower: '&cO seu cargo é inferior ao cargo do jogador mencionado!'
-  higher: '&cVocê não pode setar um cargo superior ao seu.'
-  sucess: '&aVocê setou o cargo {role} &apara {player}&a.'
-  self: '&cVocê não pode setar um cargo para si mesmo.'
+  role_op: '&cThis player''s role cannot be changed.'
+  success: '&aYou have defined the {role} &arole for {player}&a.'
+  offline: '&cThis player is not currently online.'
+  higher: '&cYou cannot set a role higher than yours.'
+  lower: '&cYour role is lower than the mentioned player''s role!'
+  self: '&cYou cannot set a role for yourself.'
+
 listgroups:
   json:
-    header: '\n &aSetar cargo para {player}\n '
-    list: '  {role} &f- &7Clique para setar este cargo'
+    header: '\n &e&lDEFINE ROLE TO {player}\n '
+    format: '  {role}'
+    tooltip: '&7Click here to assign this role to {player}&7.'
   gui:
-    title: 'Lista de grupos'
+    title: 'List of Roles'
+    icon: '{item} : nome>{role} : desc>&7Set {player}&7''s role to \n{role}&7.\n\n&e➟ Click to define this role.'
+    colors:
+      §0:
+        icon: 'HEAD:3 : owner_id>063df521-537b-48d4-8fab-d303500e29ca : value>eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTY3YTJmMjE4YTZlNmUzOGYyYjU0NWY2YzE3NzMzZjRlZjliYmIyODhlNzU0MDI5NDljMDUyMTg5ZWUifX19'
+      §1:
+        icon: 'HEAD:3 : owner_id>8a4771f0-1b60-47e7-95d7-827bdea8166f : value>eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTJjZDI3MmVlYjM4YmY3ODNhOThhNDZmYTFlMmU4ZDQ2MmQ4NTJmYmFhZWRlZjBkY2UyYzFmNzE3YTJhIn19fQ=='
+      §2:
+        icon: 'HEAD:3 : owner_id>9113c2d9-acfd-4f7e-bdb0-cbd029a4e3f4 : value>eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOGU5YjI3ZmNjZDgwOTIxYmQyNjNjOTFkYzUxMWQwOWU5YTc0NjU1NWU2YzljYWQ1MmU4NTYyZWQwMTgyYTJmIn19fQ=='
+      §3:
+        icon: 'HEAD:3 : owner_id>09f14600-a016-4979-83b8-95610cbd8e9f : value>eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTViOWE0ODQ2N2YwMjEyYWE2ODg2NGU2MzQyMTE2ZjhmNzlhMjc1NDU0YmYyMTVmNjdmNzAxYTZmMmM4MTgifX19'
+      §4:
+        icon: 'HEAD:3 : owner_id>5c33b8a3-6608-4402-94df-e87f7f6848db : value>eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGY0ZGMzYzM3NTNiZjViMGI3ZjA4MWNkYjQ5YjgzZDM3NDI4YTEyZTQxODdmNjM0NmRlYzA2ZmFjNTRjZSJ9fX0='
+      §5:
+        icon: 'HEAD:3 : owner_id>46b5e8fd-1468-4462-ab4a-3ed65789f403 : value>eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTMyYWUyY2I4ZDJhZTYxNTE0MWQyYzY1ODkyZjM2NGZjYWRkZjczZmRlYzk5YmUxYWE2ODc0ODYzZWViNWMifX19'
+      §6:
+        icon: 'HEAD:3 : owner_id>1df5c53a-d181-4f49-9200-785b78160f94 : value>eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMmM0ODg2ZWYzNjJiMmM4MjNhNmFhNjUyNDFjNWM3ZGU3MWM5NGQ4ZWM1ODIyYzUxZTk2OTc2NjQxZjUzZWEzNSJ9fX0='
+      §7:
+        icon: 'HEAD:3 : owner_id>88d30ea4-2521-4df7-98b5-fdd837b3c52f : value>eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzhlMjk1NzY5OWJjOThhNGI1ZDYzNGFiNzE4NjdlZWIxODZiOTM0YmRiNjVkMmM0YjlkY2MyYjYxM2NmNSJ9fX0='
+      §8:
+        icon: 'HEAD:3 : owner_id>96411e87-efd7-47d7-a688-8655222a038a : value>eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNjA4ZjMyMzQ2MmZiNDM0ZTkyOGJkNjcyODYzOGM5NDRlZTNkODEyZTE2MmI5YzZiYTA3MGZjYWM5YmY5In19fQ=='
+      §9:
+        icon: 'HEAD:3 : owner_id>51d4b34d-d594-4b14-a1b9-a4bcd63ecb1d : value>eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjgxNTdiNGRjNWVmYzIxNzM1Mjg5NDQ3MWMxMTZkMzlhMDM0ZmMzOTdjMjQ1MzlhOWQwZWViMmE0NjVjYSJ9fX0='
+      §a:
+        icon: 'HEAD:3 : owner_id>028c59eb-fd0d-454d-b140-249a24942fdd : value>eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTllNGJkY2YxNzJkNWRjNzdjMmJkNGUzN2FkOTg1Mzk5YTlmMmNkZWJmNzI0NjM5MjllYTRiNjY2ZWY2ZjgwIn19fQ=='
+      §b:
+        icon: 'HEAD:3 : owner_id>89c31154-c27e-4168-86ed-be87320b0d0c : value>eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMDdjNzhmM2VlNzgzZmVlY2QyNjkyZWJhNTQ4NTFkYTVjNDMyMzA1NWViZDJmNjgzY2QzZTgzMDJmZWE3YyJ9fX0='
+      §c:
+        icon: 'HEAD:3 : owner_id>6edc03f4-71d9-4cc8-8632-ecb08c304a72 : value>eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNWZkZTNiZmNlMmQ4Y2I3MjRkZTg1NTZlNWVjMjFiN2YxNWY1ODQ2ODRhYjc4NTIxNGFkZDE2NGJlNzYyNGIifX19'
+      §d:
+        icon: 'HEAD:3 : owner_id>5560070f-beb6-401d-abc0-f20a4f7d8f53 : value>eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzNiMGFmODNkMGM3MjhhZWVjYTQ3MGYwOGExZDc1ZjQxY2VlMjUzYTM1NzNiYTQxNTdjYTI0MzNlNmMzNiJ9fX0='
+      §e:
+        icon: 'HEAD:3 : owner_id>11d8b86f-8c1c-4a47-bc34-26dba4640a5c : value>eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYzY0MTY4MmY0MzYwNmM1YzlhZDI2YmM3ZWE4YTMwZWU0NzU0N2M5ZGZkM2M2Y2RhNDllMWMxYTI4MTZjZjBiYSJ9fX0='
+      §f:
+        icon: 'HEAD:3 : owner_id>8868682c-5cd8-430f-ad06-ca6dae4903ed : value>eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzY2YTVjOTg5MjhmYTVkNGI1ZDViOGVmYjQ5MDE1NWI0ZGRhMzk1NmJjYWE5MzcxMTc3ODE0NTMyY2ZjIn19fQ=='
+
 confirm:
-  gui:
-    title: 'Setar cargo para {player}'
-    rows: 4
-    items:
-      player:
-        slot: 13
-        execute: 'none'
-        icon: 'item>HEAD:dono={player} : nome>{colored} : desc>&fCargo atual: {current_role}\n&fCargo a ser setado: {role}'
-      confirm:
-        slot: 21
-        execute: 'confirm'
-        icon: 'item>159:13 : nome>&aConfirmar : desc>'
-      cancel:
-        slot: 23
-        execute: 'close'
-        icon: 'item>159:14 : nome>&cCancelar : desc>'
+  title: 'Define role for {player}'
+  rows: 3
+  items:
+    player:
+      slot: 11
+      icon: 'HEAD:3 : dono>{player} : nome>{colored} : desc>&fCurrent role: {current_role}\n&fRole to be defined: {role}'
+    confirm:
+      slot: 14
+      execute: 'confirm'
+      icon: 'HEAD:3 : nome>&aConfirm : desc>&7By clicking this, the server changes\n&7this player''s group to the {role}&7 group.\n\n&e➟ Click here to define the role. : owner_id>afb405c1-16ea-4a23-883f-97867e7db3f9 : value>eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTc5YTVjOTVlZTE3YWJmZWY0NWM4ZGMyMjQxODk5NjQ5NDRkNTYwZjE5YTQ0ZjE5ZjhhNDZhZWYzZmVlNDc1NiJ9fX0='
+    cancel:
+      slot: 15
+      execute: 'cancel'
+      icon: 'HEAD:3 : nome>&cCancel : desc>&7By clicking here, you will cancel this\n&7action and not define a new group\n&7for this player.\n\n&e➟ Click here to cancel. : owner_id>2066a7f4-f2a3-43b3-8425-dfeeb939d334 : value>eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMjc1NDgzNjJhMjRjMGZhODQ1M2U0ZDkzZTY4YzU5NjlkZGJkZTU3YmY2NjY2YzAzMTljMWVkMWU4NGQ4OTA2NSJ9fX0='
